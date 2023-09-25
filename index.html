@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tennis Odds Calculator</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <center>
+        <header id="header">
+            <h1>Welcome!</h1>
+        </header>
+        <p>Get started by entering the name of each player below, then choose which type of odds to calculate!</p>
+    </center>
+</head>
+<body <script type="text/javascript" src="src.js"></script>>
+    <main>
+        <center>
+            <section id="players">
+                <h2>Player 1: <input
+                    type="text"
+                    id="player1Name"
+                    placeholder="Enter player's full name"
+                  />
+                  <section>
+                    <button id="player1calc" onclick="gameOddsCreator('p1')">Calculate Game Odds When Player 1 is Serving!</button>
+                  </section>
+                  <p>Check if player is serving first:    <input type="checkbox" id="player1Serving"/></p>
+                </h2>
+                <h3>Player 2: <input
+                  type="text"
+                  id="player2Name"
+                  placeholder="Enter player's full name"
+                />
+                <section>
+                    <button id="player2calc" onclick="gameOddsCreator('p2')">Calculate Game Odds When Player 2 is Serving!</button>
+                </section>
+                <p>Check if player is serving first:    <input type="checkbox" id="player2Serving"/></p>
+                </h3>
+            </section>
+            <section>
+                <button 
+                id = "setCalc"
+                onclick="setOddsCreator()">
+                Calculate Set Odds!
+                </button>
+            </section>
+            <section>
+                <button
+                id = "matchCalc"
+                onclick="matchOddsCreator()">
+                Calculate Full Match Odds!
+                </button>
+            </section>
+            <section id="results" style='margin-top: 50px;'>
+            </section>
+            <script type="text/javascript">
+                function gameOddsCreator(player) {
+                    if (player == "p1") {
+                        player = document.getElementById("player1Name");
+                    }
+                    else if (player == "p2") {
+                        player = document.getElementById("player2Name");
+
+                    }
+                    else {
+                        return alert("Please enter a valid player!");
+                    }
+                    if (document.getElementById("player1Name").value == "" || document.getElementById("player2Name").value == "") {
+                        return alert("Please enter both player names!");
+                    }
+                    player1Odds = .6;
+                    calculateGameProbs(player1Odds, "p1");
+                }
+                function setOddsCreator() {
+                    player1 = document.getElementById("player1Name");
+                    player2 = document.getElementById("player2Name");
+                    player1Odds = .562;
+                    player2Odds = .549; 
+                    aServing = document.getElementById("player1Serving");
+                    bServing = document.getElementById("player2Serving");
+                    if (aServing.checked && bServing.checked) {
+                        alert("Both players cannot serve first!")
+                    }
+                    else if (!aServing.checked && !bServing.checked) {
+                        alert("Please indicate who will serve first!")
+                    }
+                    else if (aServing.checked) {
+                        serving = "A";
+                    }
+                    else {
+                        serving = "B";
+                    }
+                    matrix = addGameProbabilities(player1Odds);
+                    Q = giveQ(matrix, "game");
+                    R = giveR(matrix, "game");
+                    N = invertMatrix(subtractMatrices(returnSmallIdentity(), Q));
+                    NR = multiplyMatrices(N, R);
+                    A = NR[0][0];
+
+                    matrix = addGameProbabilities(player2Odds);
+                    Q = giveQ(matrix, "game");
+                    R = giveR(matrix, "game");
+                    N = invertMatrix(subtractMatrices(returnSmallIdentity(), Q));
+                    NR = multiplyMatrices(N, R);
+                    B = NR[0][0];
+                    calculateSetProbs(A, B, serving);
+                }
+                function matchOddsCreator() {
+                    player1 = document.getElementById("player1Name");
+                    player2 = document.getElementById("player2Name");
+                    player1Odds = .562;
+                    player2Odds = .549; 
+                    aServing = document.getElementById("player1Serving");
+                    bServing = document.getElementById("player2Serving");
+                    serving = "";
+                    if (aServing.checked && bServing.checked) {
+                        alert("Both players cannot serve first!")
+                    }
+                    else if (!aServing.checked && !bServing.checked) {
+                        alert("Please indicate who will serve first!")
+                    }
+                    else if (aServing.checked) {
+                        serving = "A";
+                    }
+                    else {
+                        serving = "B";
+                    }
+                    matrix = addGameProbabilities(player1Odds);
+                    Q = giveQ(matrix, "game");
+                    R = giveR(matrix, "game");
+                    N = invertMatrix(subtractMatrices(returnSmallIdentity(), Q));
+                    NR = multiplyMatrices(N, R);
+                    A = NR[0][0];
+
+                    matrix = addGameProbabilities(player2Odds);
+                    Q = giveQ(matrix, "game");
+                    R = giveR(matrix, "game");
+                    N = invertMatrix(subtractMatrices(returnSmallIdentity(), Q));
+                    NR = multiplyMatrices(N, R);
+                    B = NR[0][0];
+
+                    matrix = addSetProbabilities(A, B, serving);
+                    Q = giveQ(matrix, "set");
+                    R = giveR(matrix, "set");
+                    N = invertMatrix(subtractMatrices(returnLargeIdentity(), Q));
+
+                    if (serving == "B") {
+                        A = NR[0][0];
+                        B = NR[0][1];
+                    }
+                    if (serving == "A") {
+                        A = NR[0][1];
+                        B = NR[0][0];
+                    }
+                    calculateMatchProbs(A);
+                }
+                function returnSmallIdentity() {
+                    identityMatrix = [
+                        [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []];
+
+                    for (var i = 0; i < 18; i++) {
+                        for (var j = 0; j < 18; j++) {
+                            if (i == j) {
+                                identityMatrix[i][j] = 1;
+                            } else {
+                                identityMatrix[i][j] = 0;
+                            }
+                        }
+                    }
+                    return identityMatrix;
+                }
+                function returnLargeIdentity() {
+                    identityMatrix = [
+                        [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],
+                        [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []];
+
+                    for (var i = 0; i < 38; i++) {
+                        for (var j = 0; j < 38; j++) {
+                            if (i == j) {
+                                identityMatrix[i][j] = 1;
+                            } else {
+                                identityMatrix[i][j] = 0;
+                            }
+                        }
+                    }
+                    return identityMatrix;
+                }
+                function returnFinalIdentity() {
+                    identityMatrix = [
+                        [], [], [], [], [], [], [], [], [], [], []];
+                    for (var i = 0; i < 11; i++) {
+                        for (var j = 0; j < 11; j++) {
+                            if (i == j) {
+                                identityMatrix[i][j] = 1;
+                            } else {
+                                identityMatrix[i][j] = 0;
+                            }
+                        }
+                    }
+                    return identityMatrix;
+                }
+                function addGameProbabilities(winProb) {
+                    blankMatrix = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []];
+                    for (var i = 0; i < blankMatrix.length; i++) {
+                        for (var j = 0; j < blankMatrix.length; j++) {
+                            blankMatrix[i][j] = 0;
+                        }
+                    }
+                    blankMatrix[0][1] = winProb;
+                    blankMatrix[0][4] = 1 - winProb;
+                    blankMatrix[1][2] = winProb;
+                    blankMatrix[1][7] = 1 - winProb;
+                    blankMatrix[2][3] = winProb;
+                    blankMatrix[2][10] = 1 - winProb;
+                    blankMatrix[3][18] = winProb;
+                    blankMatrix[3][13] = 1 - winProb;
+                    blankMatrix[4][7] = winProb;
+                    blankMatrix[4][5] = 1 - winProb;
+                    blankMatrix[5][8] = winProb;
+                    blankMatrix[5][6] = 1 - winProb;
+                    blankMatrix[6][9] = winProb;
+                    blankMatrix[6][19] = 1 - winProb;
+                    blankMatrix[7][10] = winProb;
+                    blankMatrix[7][8] = 1 - winProb;
+                    blankMatrix[8][11] = winProb;
+                    blankMatrix[8][9] = 1 - winProb;
+                    blankMatrix[9][12] = winProb;
+                    blankMatrix[9][19] = 1 - winProb;
+                    blankMatrix[10][13] = winProb;
+                    blankMatrix[10][11] = 1 - winProb;
+                    blankMatrix[11][14] = winProb;
+                    blankMatrix[11][12] = 1 - winProb;
+                    blankMatrix[12][15] = winProb;
+                    blankMatrix[12][19] = 1 - winProb;
+                    blankMatrix[13][18] = winProb;
+                    blankMatrix[13][14] = 1 - winProb;
+                    blankMatrix[14][18] = winProb;
+                    blankMatrix[14][15] = 1 - winProb;
+                    blankMatrix[15][16] = winProb;
+                    blankMatrix[15][17] = 1 - winProb;
+                    blankMatrix[16][18] = winProb;
+                    blankMatrix[16][15] = 1 - winProb;
+                    blankMatrix[17][15] = winProb;
+                    blankMatrix[17][19] = 1 - winProb;
+                    blankMatrix[18][18] = 1;
+                    blankMatrix[19][19] = 1;
+                    return blankMatrix;
+                }
+                function addSetProbabilities(A, B, servingFirst) {
+                    // A represents probability that the first server wins while serving
+                    // B represents probability that the second server wins while serving 
+                    // To represent when B wins a point while A is serving
+                    //servingFirst represents who is serving first between the two players
+                    bUpset = 1 - A
+                    // To represent when A wins a point while B is serving
+                    aUpset = 1 - B
+                    blankMatrix = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], 
+                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []];
+                    for (var i = 0; i < blankMatrix.length; i++) {
+                        for (var j = 0; j < blankMatrix.length; j++) {
+                            blankMatrix[i][j] = 0;
+                        }
+                    }
+                    if (serving == "A") {
+                        A = B;
+                        B = A;
+                        aUpset = bUpset;
+                        bUpset = aUpset;
+                    }
+                    blankMatrix[0][1] = B; 
+                    blankMatrix[0][6] = aUpset; 
+                    blankMatrix[1][2] = bUpset;
+                    blankMatrix[1][11] = A; 
+                    blankMatrix[2][3] = B;
+                    blankMatrix[2][12] = aUpset; 
+                    blankMatrix[3][4] = bUpset;
+                    blankMatrix[3][13] = A; 
+                    blankMatrix[4][5] = B; 
+                    blankMatrix[4][14] = aUpset; 
+                    blankMatrix[5][15] = A;
+                    blankMatrix[5][39] = bUpset; 
+                    blankMatrix[6][7] = A;
+                    blankMatrix[6][11] = bUpset;
+                    blankMatrix[7][8] = aUpset;
+                    blankMatrix[7][16] = B;
+                    blankMatrix[8][9] = A;
+                    blankMatrix[8][21] = bUpset;
+                    blankMatrix[9][10] = aUpset;
+                    blankMatrix[9][26] = B;
+                    blankMatrix[10][31] = bUpset;
+                    blankMatrix[10][38] = A;
+                    blankMatrix[11][12] = B;
+                    blankMatrix[11][16] = aUpset;
+                    blankMatrix[12][13] = bUpset;
+                    blankMatrix[12][16] = A;
+                    blankMatrix[13][14] = B;
+                    blankMatrix[13][17] = aUpset;
+                    blankMatrix[14][15] = bUpset;
+                    blankMatrix[14][18] = A;
+                    blankMatrix[15][19] = aUpset;
+                    blankMatrix[15][39] = B;
+                    blankMatrix[16][17] = bUpset;
+                    blankMatrix[16][21] = A;
+                    blankMatrix[17][18] = B;
+                    blankMatrix[17][22] = aUpset;
+                    blankMatrix[18][19] = bUpset;
+                    blankMatrix[18][23] = A;
+                    blankMatrix[19][20] = B;
+                    blankMatrix[19][24] = aUpset;
+                    blankMatrix[20][25] = A;
+                    blankMatrix[20][39] = bUpset;
+                    blankMatrix[21][22] = B;
+                    blankMatrix[21][26] = aUpset;
+                    blankMatrix[22][23] = bUpset;
+                    blankMatrix[22][27] = A;
+                    blankMatrix[23][24] = B;
+                    blankMatrix[23][28] = aUpset;
+                    blankMatrix[24][25] = bUpset;
+                    blankMatrix[24][29] = A;
+                    blankMatrix[25][30] = aUpset;
+                    blankMatrix[25][39] = B;
+                    blankMatrix[26][27] = bUpset;
+                    blankMatrix[26][31] = A;
+                    blankMatrix[27][28] = B;
+                    blankMatrix[27][32] = aUpset;
+                    blankMatrix[28][29] = bUpset;
+                    blankMatrix[28][33] = A;
+                    blankMatrix[29][30] = B;
+                    blankMatrix[29][34] = aUpset;
+                    blankMatrix[30][35] = A;
+                    blankMatrix[30][39] = bUpset;
+                    blankMatrix[31][32] = B;
+                    blankMatrix[31][38] = aUpset;
+                    blankMatrix[32][33] = bUpset;
+                    blankMatrix[32][38] = A;
+                    blankMatrix[33][34] = B;
+                    blankMatrix[33][38] = aUpset;
+                    blankMatrix[34][35] = bUpset;
+                    blankMatrix[34][38] = A;
+                    blankMatrix[35][36] = aUpset;
+                    blankMatrix[35][37] = B;
+                    blankMatrix[36][35] = bUpset;
+                    blankMatrix[36][38] = A;
+                    blankMatrix[37][35] = A;
+                    blankMatrix[37][39] = bUpset;
+                    blankMatrix[38][38] = 1;
+                    blankMatrix[39][39] = 1;
+                    return blankMatrix;
+                }
+                function addMatchProbabilities(A) {
+                    B = 1 - A;
+                    blankMatrix = [[], [], [], [], [], [], [], [], [], [], [], [], []];
+                    for (var i = 0; i < blankMatrix.length; i++) {
+                        for (var j = 0; j < blankMatrix.length; j++) {
+                            blankMatrix[i][j] = 0;
+                        }
+                    }
+                    blankMatrix[0][1] = B;
+                    blankMatrix[0][3] = A;
+                    blankMatrix[1][2] = B;
+                    blankMatrix[1][5] = A;
+                    blankMatrix[2][6] = A;
+                    blankMatrix[2][12] = B;
+                    blankMatrix[3][4] = B;
+                    blankMatrix[3][5] = A;
+                    blankMatrix[4][7] = B;
+                    blankMatrix[4][11] = A;
+                    blankMatrix[5][6] = B;
+                    blankMatrix[5][7] = A;
+                    blankMatrix[6][8] = A;
+                    blankMatrix[6][12] = B;
+                    blankMatrix[7][8] = B;
+                    blankMatrix[7][11] = A;
+                    blankMatrix[8][9] = A;
+                    blankMatrix[8][10] = B;
+                    blankMatrix[9][8] = B;
+                    blankMatrix[9][11] = A;
+                    blankMatrix[10][8] = A;
+                    blankMatrix[10][12] = B;
+                    blankMatrix[11][11] = 1;
+                    blankMatrix[12][12] = 1;
+                    return blankMatrix;
+                }
+                function subtractMatrices(matrix1, matrix2) {
+                    for (var i = 0; i < matrix1.length; i++) {
+                        for (var j = 0; j < matrix1[0].length; j++) {
+                            matrix1[i][j] -= matrix2[i][j];
+                        }
+                    }
+                    return matrix1;
+                }
+                function multiplyMatrices(matrix1, matrix2) {
+                    if (matrix1[0].length != matrix2.length) {
+                        return alert("Matrices are not compatible for multiplication! Check code.");
+                    }
+                    var result = matrix1;
+                    for (var i = 0; i < matrix1.length; i++) {
+                        for (var j = 0; j < matrix2[0].length; j++) {
+                            result[i][j] = 0;
+                            for (var k = 0; k < matrix1[0].length; k++) {
+                                result[i][j] += matrix1[i][k] * matrix2[k][j];
+                            }
+                        }
+                    }
+                    return result;
+                }
+                function invertMatrix(matrix) {
+                    if(matrix.length !== matrix[0].length) {
+                        return alert("Matrices are not square! Check code.");
+                    }
+                    var i=0, ii=0, j=0, dim=matrix.length, e=0, t=0;
+                    var I = [], C = [];
+                    for(i=0; i<dim; i+=1){
+                        // Create the row
+                        I[I.length]=[];
+                        C[C.length]=[];
+                        for(j=0; j<dim; j+=1){
+                            if(i==j) {
+                                 I[i][j] = 1; 
+                                }
+                            else { I[i][j] = 0; }
+                            C[i][j] = matrix[i][j]; }
+                        }
+                        for(i=0; i<dim; i+=1){
+                            e = C[i][i];
+                            if(e==0){
+                                for(ii=i+1; ii<dim; ii+=1){
+                                    if(C[ii][i] != 0){
+                                        for(j=0; j<dim; j++){
+                                            e = C[i][j];       
+                                            C[i][j] = C[ii][j];
+                                            C[ii][j] = e;      
+                                            e = I[i][j];       
+                                            I[i][j] = I[ii][j];
+                                            I[ii][j] = e;
+                                        }
+                                        break;
+                                    }
+                                }
+                                e = C[i][i];
+                                if(e==0){return}
+                            }
+                            for(j=0; j<dim; j++){
+                                C[i][j] = C[i][j]/e; 
+                                I[i][j] = I[i][j]/e; 
+                            }
+                            for(ii=0; ii<dim; ii++) {
+                                if(ii==i){continue;}
+                                e = C[ii][i];
+                                for(j=0; j<dim; j++){
+                                    C[ii][j] -= e*C[i][j]; 
+                                    I[ii][j] -= e*I[i][j]; 
+                                }
+                            }
+                        }
+                        return I;
+                }
+                function giveQ(matrix, type) {
+                    if (type == "game") {
+                        blankMatrix = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []];
+                    }
+                    else if (type == "set") {
+                        blankMatrix = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],
+                        [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []];
+                    }
+                    else if (type == "match") {
+                        blankMatrix = [[], [], [], [], [], [], [], [], [], [], []];
+                    }
+                    for (var i = 0; i < (matrix.length - 2); i++) {
+                        for (var j = 0; j < (matrix[0].length - 2); j++) {
+                            blankMatrix[i][j] = matrix[i][j];
+                        }
+                    }
+                    return blankMatrix;
+                }
+                function giveR(matrix, type) {
+                    if (type == "game") {
+                        blankMatrix = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0],
+                        [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]];
+
+                        for (var i = 0; i < (matrix.length - 2); i++) {
+                        for (var j = (matrix.length - 2); j < matrix.length; j++) {
+                            if (j == matrix[0].length - 2) {
+                                blankMatrix[i][0] = matrix[i][j];
+                            } else {
+                                blankMatrix[i][1] = matrix[i][j];
+                            }
+                        }
+                    }
+                    return blankMatrix;
+                    }
+                    else if (type == "set") {
+                        blankMatrix = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], 
+                        [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], 
+                        [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0],
+                        [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]];
+
+                        for (var i = 0; i < (matrix.length - 2); i++) {
+                        for (var j = (matrix.length - 2); j < matrix.length; j++) {
+                            if (j == matrix[0].length - 2) {
+                                blankMatrix[i][0] = matrix[i][j];
+                            } else {
+                                blankMatrix[i][1] = matrix[i][j];
+                            }
+                        }
+                    }
+                    return blankMatrix;
+                    }
+                    else if (type == "match") {
+                        blankMatrix = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], 
+                        [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]];
+
+                        for (var i = 0; i < 11; i++) {
+                            for (var j = 11; j < 13; j++) {
+                                if (j == matrix.length - 2) {
+                                blankMatrix[i][0] = matrix[i][j];
+                            } else {
+                                blankMatrix[i][1] = matrix[i][j];
+                            }
+                        }
+                    }
+                    return blankMatrix;
+                    }
+                }
+                function calculateGameProbs(prob, player) {
+                    matrix = addGameProbabilities(prob);
+                    Q = giveQ(matrix, "game");
+                    R = giveR(matrix, "game");
+                    N = invertMatrix(subtractMatrices(returnSmallIdentity(), Q));
+                    NR = multiplyMatrices(N, R);
+
+                    if (player == "p1") {
+                        player = document.getElementById("player1Name");
+                    }
+                    else if (player == "p2") {
+                        player = document.getElementById("player2Name");
+                    }
+                    else {
+                        return alert("Please enter a valid player!");
+                    }
+                    document.getElementById("results").innerHTML = "The probability that " +
+                     player + " wins the game when serving is: " + (NR[0][0]).toString();
+                }
+                function calculateSetProbs(A, B, serving) {
+                    matrix = addSetProbabilities(A, B, serving);
+                    Q = giveQ(matrix, "set");
+                    R = giveR(matrix, "set");
+                    N = invertMatrix(subtractMatrices(returnLargeIdentity(), Q));
+                    player1 = document.getElementById("player1Name");
+                    player2 = document.getElementById("player2Name");
+
+                    if (serving == "B") {
+                        document.getElementById("results").innerHTML += "The probability that " +
+                        player1 + " wins a set with alternating service is: " + (NR[0][0]).toString() +
+                        ", whereas the probability that " + player2.toString() + "wins is: " + (NR[0][1]).toString()
+                    }
+                    if (serving == "A") {
+                        document.getElementById("results").innerHTML += "The probability that " +
+                        player1 + " wins a set with alternating service is: " + (NR[0][1]).toString() +
+                        ", whereas the probability that " + player2.toString() + "wins is: " + (NR[0][0]).toString()
+                    }
+                }
+                function calculateMatchProbs(player1Prob) {
+                    matrix = addMatchProbabilities(player1Prob);
+                    console.log(matrix);
+                    Q = giveQ(matrix, "match");
+                    R = giveR(matrix, "match");
+                    N = invertMatrix(subtractMatrices(returnFinalIdentity(), Q));
+                    NR = multiplyMatrices(N, R);
+                    player1 = document.getElementById("player1Name");
+                    player2 = document.getElementById("player2Name");
+                    document.getElementById("results").innerHTML += "The probability that " +
+                    player1 + " wins a match is: " + (NR[0][0]).toString() +
+                    ", whereas the probability that " + player2.toString() + "wins is: " + (NR[0][1]).toString();
+                }
+            </script>
+        </center>
+
+    </main>
+</body>
+</html>

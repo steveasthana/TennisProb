@@ -1,0 +1,41 @@
+body {
+    background-image: url("../images/brown.jpg");
+    color: white;
+}
+
+main {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    color: white;
+    background-image: url("../images/medCourt.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    padding: 125px;
+}
+
+h2 {
+    width: 50%;
+    float: left;
+    padding: 20px;
+}
+h3 {
+    width: 50%;
+    float: left;
+    padding: 0px;
+}
+
+
+
+.header {
+    overflow: hidden;
+    background-color: #f1f1f1;
+    padding: 20px 10px;
+}
+
+.results {
+    float: left;
+    font-size: 20px;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+}
