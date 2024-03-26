@@ -72,8 +72,8 @@
                 function setOddsCreator() {
                     player1 = document.getElementById("player1Name");
                     player2 = document.getElementById("player2Name");
-                    player1Odds = .562;
-                    player2Odds = .549; 
+                    player1Odds = .662;
+                    player2Odds = .663; 
                     aServing = document.getElementById("player1Serving");
                     bServing = document.getElementById("player2Serving");
                     if (aServing.checked && bServing.checked) {
@@ -568,8 +568,8 @@
                     player1 = document.getElementById("player1Name");
                     player2 = document.getElementById("player2Name");
                     document.getElementById("results").innerHTML += "The probability that " +
-                    player1 + " wins a match is: " + (NR[0][0]).toString() +
-                    ", whereas the probability that " + player2.toString() + "wins is: " + (NR[0][1]).toString();
+                    player1.value + " wins a match is: " + (NR[0][0]).toString() +
+                    ", whereas the probability that " + player2.value + "wins is: " + (NR[0][1]).toString();
                 }
             </script>
         </center>
